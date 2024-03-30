@@ -1,8 +1,11 @@
 from app import webserver
 from flask import request, jsonify
+from app.requests_solver import RequestsSolver
 
 import os
 import json
+
+requests_solver = RequestsSolver(webserver.data_ingestor.data)
 
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
@@ -24,32 +27,42 @@ def post_endpoint():
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
+    job_id = int(job_id)
     print(f"JobID is {job_id}")
-    # TODO
+
     # Check if job_id is valid
-
-    # Check if job_id is done and return the result
-    #    res = res_for(job_id)
-    #    return jsonify({
-    #        'status': 'done',
-    #        'data': res
-    #    })
-
-    # If not, return running status
-    return jsonify({'status': 'NotImplemented'})
+    if job_id >= 1 and job_id < webserver.job_counter:        
+        # Check if job_id is done and return the result
+        if webserver.job_status[job_id] == "done":
+            with open(f"results/{job_id}.out", "r", encoding="utf-8") as f:
+                data = json.load(f)
+                print(f"Datele din fisier sunt: {data}")
+                return jsonify({"status": "done", "data": data})
+        else:
+            return jsonify({"status": "running"})
+    else:
+        return jsonify({"status": "error", "reason": "Invalid job_id"})
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
-    # Get request data
-    data = request.json
-    print(f"Got request {data}")
+    if request.method == 'POST':
+        # Get request data
+        data = request.json
+        print(f"Got request {data}")
 
-    # TODO
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+        # Register job. Don't wait for task to finish
+        job_id = webserver.job_counter
+        webserver.job_status[job_id] = "running"
+        webserver.tasks_runner.submit(requests_solver.states_mean, job_id, data)
 
-    return jsonify({"status": "NotImplemented"})
+        # Increment job_id counter
+        webserver.job_counter += 1
+
+        # Return associated job_id
+        return jsonify({"job_id": job_id})
+    else:
+        # Method Not Allowed
+        return jsonify({"error": "Method not allowed"}), 405
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
