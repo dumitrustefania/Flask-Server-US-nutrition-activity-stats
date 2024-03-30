@@ -5,7 +5,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
-def handle_future_result(future, job_id):
+def handle_future_result(future):
     try:
         future.result()
         print("Task completed successfully")
@@ -31,10 +31,8 @@ class ThreadPool:
         self.thread_pool.shutdown()
 
     def submit(self, callable, job_id, request_args):
-        # print(job_id, request_args)
-        # print(f"Submitting task to thread pool")
         future = self.thread_pool.submit(callable, job_id, request_args)
-        future.add_done_callback(partial(handle_future_result, job_id))
+        future.add_done_callback(handle_future_result)
 
     
     

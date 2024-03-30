@@ -36,7 +36,7 @@ def get_response(job_id):
     if job_id >= 1 and job_id < webserver.job_counter:        
         # Check if job_id is done and return the result
         if webserver.job_status[job_id] == "done":
-            with open(f"results/{job_id}.json", "r", encoding="utf-8") as f:
+            with open(f"results/job_id_{job_id}.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
                 print(f"Datele din fisier sunt: {data}")
                 return jsonify({"status": "done", "data": data})
@@ -90,11 +90,17 @@ def shutdown():
 
 @webserver.route('/api/jobs', methods=['GET'])
 def get_jobs():
-    return jsonify({"status": "done", "data": webserver.job_status})
+    statuses = [{"job_id_" + str(job_id): status} for job_id, status in webserver.job_status.items()]
+    return jsonify({"status": "done", "data": statuses})
 
 @webserver.route('/api/num_jobs', methods=['GET'])
 def get_num_jobs():
-    return jsonify({"status": "done", "data": webserver.job_counter})
+    count = 0
+    for val in webserver.job_status.values():
+        if val == "running":
+            count += 1
+
+    return jsonify({"status": "done", "data": count})
     
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
