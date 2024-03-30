@@ -12,6 +12,8 @@ class RequestsSolver:
         with open(f"results/{job_id}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(result))
 
+        webserver.job_status[job_id] = "done"
+
     def states_mean(self, job_id: int, request_args: dict):
         question = request_args["question"]
 
