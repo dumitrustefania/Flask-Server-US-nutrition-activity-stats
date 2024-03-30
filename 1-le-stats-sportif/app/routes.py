@@ -1,9 +1,9 @@
+import os
+import json
+
 from app import webserver
 from flask import request, jsonify
 from app.requests_solver import RequestsSolver
-
-import os
-import json
 
 requests_solver = RequestsSolver(webserver.data_ingestor.data)
 
@@ -27,24 +27,6 @@ def submit_request(callable, request):
         # Method Not Allowed
         return jsonify({"error": "Method not allowed"}), 405
 
-# Example endpoint definition
-@webserver.route('/api/post_endpoint', methods=['POST'])
-def post_endpoint():
-    if request.method == 'POST':
-        # Assuming the request contains JSON data
-        data = request.json
-        print(f"got data in post {data}")
-
-        # Process the received data
-        # For demonstration purposes, just echoing back the received data
-        response = {"message": "Received data successfully", "data": data}
-
-        # Sending back a JSON response
-        return jsonify(response)
-    else:
-        # Method Not Allowed
-        return jsonify({"error": "Method not allowed"}), 405
-
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
     job_id = int(job_id)
@@ -54,7 +36,7 @@ def get_response(job_id):
     if job_id >= 1 and job_id < webserver.job_counter:        
         # Check if job_id is done and return the result
         if webserver.job_status[job_id] == "done":
-            with open(f"results/{job_id}.out", "r", encoding="utf-8") as f:
+            with open(f"results/{job_id}.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
                 print(f"Datele din fisier sunt: {data}")
                 return jsonify({"status": "done", "data": data})
@@ -74,78 +56,46 @@ def state_mean_request():
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    return submit_request(requests_solver.best5, request)
 
-    return jsonify({"status": "NotImplemented"})
+@webserver.route('/api/worst5', methods=['POST'])
+def worst5_request():
+    return submit_request(requests_solver.worst5, request)
+
+@webserver.route('/api/global_mean', methods=['POST'])
+def global_mean_request():
+    return submit_request(requests_solver.global_mean, request)
+
+@webserver.route('/api/diff_from_mean', methods=['POST'])
+def diff_from_mean_request():
+    return submit_request(requests_solver.diff_from_mean, request)
+
+
+@webserver.route('/api/state_diff_from_mean', methods=['POST'])
+def state_diff_from_mean_request():
+    return submit_request(requests_solver.state_diff_from_mean, request)
+
+@webserver.route('/api/mean_by_category', methods=['POST'])
+def mean_by_category_request():
+   return submit_request(requests_solver.mean_by_category, request)
+
+@webserver.route('/api/state_mean_by_category', methods=['POST'])
+def state_mean_by_category_request():
+    return submit_request(requests_solver.state_mean_by_category, request)
 
 @webserver.route('/api/graceful_shutdown', methods=['GET'])
 def shutdown():
     webserver.tasks_runner.shutdown()
+    return jsonify({"status": "done"})
 
-@webserver.route('/api/worst5', methods=['POST'])
-def worst5_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+@webserver.route('/api/jobs', methods=['GET'])
+def get_jobs():
+    return jsonify({"status": "done", "data": webserver.job_status})
 
-    return jsonify({"status": "NotImplemented"})
-
-@webserver.route('/api/global_mean', methods=['POST'])
-def global_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
-@webserver.route('/api/diff_from_mean', methods=['POST'])
-def diff_from_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
-@webserver.route('/api/state_diff_from_mean', methods=['POST'])
-def state_diff_from_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
-@webserver.route('/api/mean_by_category', methods=['POST'])
-def mean_by_category_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
-@webserver.route('/api/state_mean_by_category', methods=['POST'])
-def state_mean_by_category_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
+@webserver.route('/api/num_jobs', methods=['GET'])
+def get_num_jobs():
+    return jsonify({"status": "done", "data": webserver.job_counter})
+    
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
 @webserver.route('/index')

@@ -1,8 +1,21 @@
 from queue import Queue
+from app import webserver
 from threading import Thread, Event
 import time
 import os
-from concurrent.futures import ThreadPoolExecutor 
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+
+
+def handle_future_result(future, job_id):
+    try:
+        future.result()
+        print("Task completed successfully")
+        webserver.job_status[job_id] = "done"
+
+    except Exception as e:
+        print("Task failed with exception:", e)
+
 
 class ThreadPool:
     def __init__(self):
@@ -24,6 +37,8 @@ class ThreadPool:
     def submit(self, callable, job_id, request_args):
         # print(job_id, request_args)
         # print(f"Submitting task to thread pool")
-        return self.thread_pool.submit(callable, job_id, request_args)
+        future = self.thread_pool.submit(callable, job_id, request_args)
+        future.add_done_callback(partial(handle_future_result, job_id))
+
     
     
