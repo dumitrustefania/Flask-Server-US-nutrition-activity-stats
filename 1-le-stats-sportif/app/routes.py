@@ -32,13 +32,14 @@ def get_response(job_id):
     # Check if job_id is valid
     if job_id >= 1 and job_id < webserver.job_counter:        
         # Check if job_id is done and return the result
-        if webserver.job_status[job_id] == "done":
+        status = webserver.job_status.get(job_id)
+        if status == "done" or status == "error":
             with open(f"results/job_id_{job_id}.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
                 print(f"Datele din fisier sunt: {data}")
-                return jsonify({"status": "done", "data": data})
-        else:
-            return jsonify({"status": "running"})
+                return jsonify({"status": status, "data": data})
+        elif status == "running":
+            return jsonify({"status": status})
     else:
         return jsonify({"status": "error", "reason": "Invalid job_id"})
 

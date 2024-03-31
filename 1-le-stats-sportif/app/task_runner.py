@@ -5,14 +5,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
-def handle_future_result(future):
-    try:
-        future.result()
-        print("Task completed successfully")
-    except Exception as e:
-        print("Task failed with exception:", e)
-
-
 class ThreadPool:
     def __init__(self, webserver):
         self.webserver = webserver
@@ -31,7 +23,16 @@ class ThreadPool:
     def shutdown(self):
         self.thread_pool.shutdown()
 
+    def handle_future_result(self, future, job_id):
+        try:
+            future.result()
+            print("Task completed successfully")
+        except Exception as e:
+            self.webserver.job_status[job_id] = "error"
+            self.webserver.requests_solver.write_result({"error_message": str(e)}, job_id)
+            print(f"Task with job id {job_id} failed with exception: {e}")
+
     def submit(self, callable, job_id, request_args):
         future = self.thread_pool.submit(callable, job_id, request_args)
-        future.add_done_callback(handle_future_result)
+        future.add_done_callback(partial(self.handle_future_result, job_id))
     
