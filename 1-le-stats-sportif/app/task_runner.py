@@ -14,7 +14,8 @@ def handle_future_result(future):
 
 
 class ThreadPool:
-    def __init__(self):
+    def __init__(self, webserver):
+        self.webserver = webserver
         # Check if environment variable TP_NUM_OF_THREADS is defined
         self.num_of_threads = os.getenv("TP_NUM_OF_THREADS")
         # If TP_NUM_OF_THREADS is not defined, the number of threads to
@@ -33,6 +34,4 @@ class ThreadPool:
     def submit(self, callable, job_id, request_args):
         future = self.thread_pool.submit(callable, job_id, request_args)
         future.add_done_callback(handle_future_result)
-
-    
     

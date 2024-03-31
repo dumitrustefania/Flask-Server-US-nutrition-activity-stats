@@ -3,9 +3,6 @@ import json
 
 from app import webserver
 from flask import request, jsonify
-from app.requests_solver import RequestsSolver
-
-requests_solver = RequestsSolver(webserver.data_ingestor.data)
 
 def submit_request(callable, request):
     if request.method == 'POST':
@@ -47,41 +44,41 @@ def get_response(job_id):
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
-    return submit_request(requests_solver.states_mean, request)
+    return submit_request(webserver.requests_solver.states_mean, request)
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
-    return submit_request(requests_solver.state_mean, request)
+    return submit_request(webserver.requests_solver.state_mean, request)
 
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
-    return submit_request(requests_solver.best5, request)
+    return submit_request(webserver.requests_solver.best5, request)
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
-    return submit_request(requests_solver.worst5, request)
+    return submit_request(webserver.requests_solver.worst5, request)
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
-    return submit_request(requests_solver.global_mean, request)
+    return submit_request(webserver.requests_solver.global_mean, request)
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
-    return submit_request(requests_solver.diff_from_mean, request)
+    return submit_request(webserver.requests_solver.diff_from_mean, request)
 
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
-    return submit_request(requests_solver.state_diff_from_mean, request)
+    return submit_request(webserver.requests_solver.state_diff_from_mean, request)
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
-   return submit_request(requests_solver.mean_by_category, request)
+   return submit_request(webserver.requests_solver.mean_by_category, request)
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
-    return submit_request(requests_solver.state_mean_by_category, request)
+    return submit_request(webserver.requests_solver.state_mean_by_category, request)
 
 @webserver.route('/api/graceful_shutdown', methods=['GET'])
 def shutdown():
