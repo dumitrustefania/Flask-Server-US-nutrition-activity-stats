@@ -5,6 +5,57 @@ class RequestsSolver:
     def __init__(self, webserver):
         self.webserver = webserver
         self.data = webserver.data_ingestor.data
+    
+    def states_mean(self, question):
+        filtered_data = self.data[self.data["Question"] == question]
+        state_avg = filtered_data.groupby("LocationDesc")["Data_Value"].mean()
+        state_avg_sorted = state_avg.sort_values()
+        return state_avg_sorted.to_dict()
+    
+    def state_mean(self, question, state):
+        filtered_data = self.data[(self.data["Question"] == question) & (self.data["LocationDesc"] == state)]
+        state_avg = filtered_data["Data_Value"].mean()
+        return {state: state_avg}
+   
+    def best5(self, question):
+        states_avg = self.states_mean(question)
+        if question in self.webserver.data_ingestor.questions_best_is_min:
+            return dict(list(states_avg.items())[:5])
+        else:
+            return dict(list(states_avg.items())[-5:])
+
+    def worst5(self, question):
+        states_avg = self.states_mean(question)
+        if question in self.webserver.data_ingestor.questions_best_is_max:
+            return dict(list(states_avg.items())[:5])
+        else:
+            return dict(list(states_avg.items())[-5:])
+        
+    def global_mean(self, question):
+        filtered_data = self.data[self.data["Question"] == question]
+        global_avg = filtered_data["Data_Value"].mean()
+
+        return {"global_mean": global_avg}
+
+    def diff_from_mean(self, question):
+        states_avg = self.states_mean(question)
+        global_avg = self.global_mean(question)["global_mean"]
+        return {state: global_avg - state_avg for state, state_avg in states_avg.items()}
+        
+    def state_diff_from_mean(self, question, state):
+        state_avg = self.state_mean(question, state)[state]
+        global_avg = self.global_mean(question)["global_mean"]
+        return {state: global_avg - state_avg}
+
+    def mean_by_category(self, question):
+        filtered_data = self.data[self.data["Question"] == question]
+        states_categories_avg = filtered_data.groupby(["LocationDesc", "StratificationCategory1", "Stratification1"])["Data_Value"].mean()
+        return {str(key): value for key, value in states_categories_avg.to_dict().items()}
+
+    def state_mean_by_category(self, question, state):
+        filtered_data = self.data[(self.data["Question"] == question) & (self.data["LocationDesc"] == state)]
+        states_categories_avg = filtered_data.groupby(["StratificationCategory1", "Stratification1"])["Data_Value"].mean()
+        return {state: {str(key): value for key, value in states_categories_avg.to_dict().items()}}
 
     def write_result(self, result, job_id, status = "done"):
         os.makedirs("results", exist_ok=True)
@@ -13,144 +64,25 @@ class RequestsSolver:
 
         self.webserver.job_status[job_id] = status
 
-    def get_input_question(self, request_args):
+    def question_solver(self, endpoint, job_id: int, request_args: dict):
         if ("question" not in request_args.keys()) or (request_args["question"] not in self.webserver.data_ingestor.questions):
-            return None
+            self.write_result({"error_message": "Invalid input"}, job_id, "error")
+            return
         
-        return request_args["question"]
-    
-    def get_input_state(self, request_args):
+        question = request_args["question"]
+        result = endpoint(question)
+        self.write_result(result, job_id)
+
+    def question_and_state_solver(self, endpoint, job_id: int, request_args: dict):
+        if ("question" not in request_args.keys()) or (request_args["question"] not in self.webserver.data_ingestor.questions):
+            self.write_result({"error_message": "Invalid input"}, job_id, "error")
+            return
+        
         if ("state" not in request_args.keys()) or (request_args["state"] not in self.webserver.data_ingestor.states):
-            return None
-
-        return request_args["state"]
-    
-    def states_mean(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        if question is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-        
-        filtered_data = self.data[self.data["Question"] == question]
-        state_avg = filtered_data.groupby("LocationDesc")["Data_Value"].mean()
-        state_avg_sorted = state_avg.sort_values()
-        result = state_avg_sorted.to_dict()
-        
-        self.write_result(result, job_id)
-    
-    def state_mean(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        state = self.get_input_state(request_args)
-        if question is None or state is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-        
-        filtered_data = self.data[(self.data["Question"] == question) & (self.data["LocationDesc"] == state)]
-        state_avg = filtered_data["Data_Value"].mean()
-        result = {state: state_avg}
-
-        self.write_result(result, job_id)
-
-    def best5(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        if question is None:
             self.write_result({"error_message": "Invalid input"}, job_id, "error")
             return
 
-        filtered_data = self.data[self.data["Question"] == question]
-        state_avg = filtered_data.groupby("LocationDesc")["Data_Value"].mean()
-        
-        if question in self.webserver.data_ingestor.questions_best_is_min:
-            state_avg_sorted = state_avg.sort_values()
-        else:
-            state_avg_sorted = state_avg.sort_values(ascending=False)
-
-        result = dict(list(state_avg_sorted.to_dict().items())[:5])
-
-        self.write_result(result, job_id)
-
-    def worst5(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        if question is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-        
-        filtered_data = self.data[self.data["Question"] == question]
-        state_avg = filtered_data.groupby("LocationDesc")["Data_Value"].mean()
-        
-        if question in self.webserver.data_ingestor.questions_best_is_min:
-            state_avg_sorted = state_avg.sort_values(ascending=False)
-        else:
-            state_avg_sorted = state_avg.sort_values()
-
-        result = dict(list(state_avg_sorted.to_dict().items())[:5])
-
-        self.write_result(result, job_id)
-
-    def global_mean(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        if question is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-        
-        filtered_data = self.data[self.data["Question"] == question]
-        global_avg = filtered_data["Data_Value"].mean()
-
-        result = {"global_mean": global_avg}
-
-        self.write_result(result, job_id)
-
-    def diff_from_mean(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        if question is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-
-        filtered_data = self.data[self.data["Question"] == question]
-        global_avg = filtered_data["Data_Value"].mean()
-        states_avg = filtered_data.groupby("LocationDesc")["Data_Value"].mean()
-        result = {state: global_avg - state_avg for state, state_avg in states_avg.to_dict().items()}
-        
-        self.write_result(result, job_id)
-
-    def state_diff_from_mean(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        state = self.get_input_state(request_args)
-        if question is None or state is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-        
-        question_filtered_data = self.data[self.data["Question"] == question]
-        global_avg = question_filtered_data["Data_Value"].mean()
-
-        question_and_state_filtered_data = question_filtered_data[question_filtered_data["LocationDesc"] == state]
-        state_avg = question_and_state_filtered_data["Data_Value"].mean()
-
-        result = {state: global_avg - state_avg}
-        
-        self.write_result(result, job_id)
-
-    def mean_by_category(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        if question is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-
-        filtered_data = self.data[self.data["Question"] == question]
-        states_categories_avg = filtered_data.groupby(["LocationDesc", "StratificationCategory1", "Stratification1"])["Data_Value"].mean()
-        result = {str(key): value for key, value in states_categories_avg.to_dict().items()}
-
-        self.write_result(result, job_id)
-
-    def state_mean_by_category(self, job_id: int, request_args: dict):
-        question = self.get_input_question(request_args)
-        state = self.get_input_state(request_args)
-        if question is None or state is None:
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-
-        filtered_data = self.data[(self.data["Question"] == question) & (self.data["LocationDesc"] == state)]
-        states_categories_avg = filtered_data.groupby(["StratificationCategory1", "Stratification1"])["Data_Value"].mean()
-        result = {state: {str(key): value for key, value in states_categories_avg.to_dict().items()}}
-
+        question = request_args["question"]
+        state = request_args["state"]
+        result = endpoint(question, state)
         self.write_result(result, job_id)

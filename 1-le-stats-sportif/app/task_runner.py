@@ -29,8 +29,8 @@ class ThreadPool:
             self.webserver.requests_solver.write_result({"error_message": str(e)}, job_id)
             self.webserver.logger.info(f"Task with job id {job_id} failed with exception: {e}")
 
-    def submit(self, callable, job_id, request_args):
-        future = self.thread_pool.submit(callable, job_id, request_args)
+    def submit(self, solver, endpoint, job_id, request_args):
+        future = self.thread_pool.submit(solver, endpoint, job_id, request_args)
         self.webserver.logger.info(f"Task with job id {job_id} submitted")
         future.add_done_callback(partial(self.handle_future_result, job_id))
     
