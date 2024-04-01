@@ -4,6 +4,7 @@ class DataIngestor:
     def __init__(self, csv_path: str):
         self.data = pd.read_csv(csv_path)
 
+        self.states = ['Ohio', 'Washington', 'Massachusetts', 'New Mexico', 'Indiana', 'Kansas', 'Wisconsin', 'New Hampshire', 'Rhode Island', 'Maryland', 'Nebraska', 'West Virginia', 'Tennessee', 'Vermont', 'Arizona', 'Connecticut', 'Pennsylvania', 'National', 'North Dakota', 'Michigan', 'Illinois', 'Oklahoma', 'Idaho', 'Iowa', 'Arkansas', 'Missouri', 'Utah', 'Maine', 'Puerto Rico', 'Louisiana', 'Georgia', 'Wyoming', 'Guam', 'South Carolina', 'Alaska', 'Virginia', 'California', 'South Dakota', 'Oregon', 'District of Columbia', 'New York', 'Montana', 'North Carolina', 'Delaware', 'Mississippi', 'Florida', 'Hawaii', 'Kentucky', 'Minnesota', 'Alabama', 'Virgin Islands', 'Colorado', 'New Jersey', 'Texas', 'Nevada']
         self.questions = [
             'Percent of adults aged 18 years and older who have an overweight classification',
             'Percent of adults aged 18 years and older who have obesity',
