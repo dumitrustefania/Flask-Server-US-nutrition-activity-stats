@@ -6,15 +6,19 @@ class RequestsSolver:
         self.webserver = webserver
         self.data = webserver.data_ingestor.data
 
-    def write_result(self, result, job_id):
+    def write_result(self, result, job_id, status = "done"):
         os.makedirs("results", exist_ok=True)
         with open(f"results/job_id_{job_id}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(result))
 
-        self.webserver.job_status[job_id] = "done"
+        self.webserver.job_status[job_id] = status
 
     def states_mean(self, job_id: int, request_args: dict):
         question = request_args["question"]
+        # if question not in self.data.questions:
+        #     print(question)
+        #     self.write_result({"error_message": "Invalid input"}, job_id, "error")
+        #     return
 
         filtered_data = self.data[self.data["Question"] == question]
         state_avg = filtered_data.groupby("LocationDesc")["Data_Value"].mean()
