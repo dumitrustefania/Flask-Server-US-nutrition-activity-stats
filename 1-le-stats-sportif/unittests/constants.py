@@ -1,3 +1,6 @@
+"""
+Constants for the unittests
+"""
 import pandas as pd
 
 mock_df1 = pd.DataFrame(
