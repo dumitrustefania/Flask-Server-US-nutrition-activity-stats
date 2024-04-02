@@ -19,7 +19,7 @@ def submit_request(solver, endpoint, request):
         webserver.job_counter += 1
 
         # Return associated job_id
-        return jsonify({"job_id": job_id})
+        return jsonify({"job_id": job_id}), 200
     else:
         # Method Not Allowed
         webserver.logger.error(f"Method not allowed - POST request expected. Got {request.method}")
@@ -39,12 +39,17 @@ def get_response(job_id):
             with open(f"results/job_id_{job_id}.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
                 webserver.logger.info(f"Data for job_id_{job_id}: {data}")
-                return jsonify({"status": status, "data": data})
+
+                if status == "error":
+                    code = 400
+                else:
+                    code = 200
+                return jsonify({"status": status, "data": data}), code
         elif status == "running":
-            return jsonify({"status": status})
+            return jsonify({"status": status}), 200
     else:
         webserver.logger.error(f"Invalid job_id: {job_id}")
-        return jsonify({"status": "error", "reason": "Invalid job_id"})
+        return jsonify({"status": "error", "reason": "Invalid job_id"}), 500
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
@@ -95,14 +100,14 @@ def state_mean_by_category_request():
 def shutdown():
     webserver.logger.info("Graceful shutdown initiated")
     webserver.tasks_runner.shutdown()
-    return jsonify({"status": "done"})
+    return jsonify({"status": "done"}), 200
 
 @webserver.route('/api/jobs', methods=['GET'])
 def get_jobs():
     webserver.logger.info("Route /api/jobs called")
     statuses = [{"job_id_" + str(job_id): status} for job_id, status in webserver.job_status.items()]
     webserver.logger.info(f"Jobs statuses: {statuses}")
-    return jsonify({"status": "done", "data": statuses})
+    return jsonify({"status": "done", "data": statuses}), 200
 
 @webserver.route('/api/num_jobs', methods=['GET'])
 def get_num_jobs():
@@ -113,7 +118,7 @@ def get_num_jobs():
             count += 1
 
     webserver.logger.info(f"Number of running jobs: {count}")
-    return jsonify({"status": "done", "data": count})
+    return jsonify({"status": "done", "data": count}), 200
 
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')

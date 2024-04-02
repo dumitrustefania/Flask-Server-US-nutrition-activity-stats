@@ -1,6 +1,7 @@
 import requests
 import json
 import unittest
+from flask import jsonify
 
 from datetime import datetime, timedelta
 from time import sleep
@@ -77,7 +78,7 @@ class TestAPI(unittest.TestCase):
 
     def test_state_mean_by_category(self):
         self.helper_test_endpoint("state_mean_by_category")
-
+        
     def helper_test_endpoint(self, endpoint):
         global total_score
 
