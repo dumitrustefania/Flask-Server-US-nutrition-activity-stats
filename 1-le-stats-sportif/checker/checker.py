@@ -15,7 +15,7 @@ ONLY_LAST = False
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
-        # os.system("rm -rf results/*")
+        os.system("rm -rf results/*")
         pass
 
     def check_res_timeout(self, res_callable, ref_result, timeout_sec, poll_interval = 0.2):
@@ -78,7 +78,7 @@ class TestAPI(unittest.TestCase):
 
     def test_state_mean_by_category(self):
         self.helper_test_endpoint("state_mean_by_category")
-        
+
     def helper_test_endpoint(self, endpoint):
         global total_score
 

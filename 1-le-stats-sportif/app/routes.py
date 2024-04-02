@@ -106,7 +106,7 @@ def shutdown():
 def get_jobs():
     webserver.logger.info("Route /api/jobs called")
     statuses = [{"job_id_" + str(job_id): status} for job_id, status in webserver.job_status.items()]
-    webserver.logger.info(f"Jobs statuses: {statuses}")
+    webserver.logger.info(f"Jobs' statuses: {statuses}")
     return jsonify({"status": "done", "data": statuses}), 200
 
 @webserver.route('/api/num_jobs', methods=['GET'])

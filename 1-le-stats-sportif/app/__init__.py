@@ -18,7 +18,7 @@ logging.Formatter.converter = time.gmtime
 os.makedirs("logging", exist_ok=True)
 logging.basicConfig(
     handlers=[
-        RotatingFileHandler("logging/webserver.log", maxBytes=10000000, backupCount=10)
+        RotatingFileHandler("logging/webserver.log", maxBytes=1000000, backupCount=10)
     ],
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
