@@ -4,7 +4,7 @@ __pycache__/
 *.so
 
 results/
-
+logging/
 venv/
 build/
 develop-eggs/
