@@ -44,11 +44,11 @@ class ThreadPool:
                 "Task with job id %s failed with exception: %s", job_id, exception
             )
 
-    def submit(self, solver, endpoint, job_id, request_args):
+    def submit(self, endpoint, job_id, request_args, has_state):
         """
         Submit a job to the thread pool executor
         """
-        future = self.thread_pool.submit(solver, endpoint, job_id, request_args)
+        future = self.thread_pool.submit(self.webserver.requests_solver.solver, endpoint, job_id, request_args, has_state)
         self.webserver.logger.info(f"Task with job id {job_id} submitted")
 
         future.add_done_callback(partial(self.handle_future_result, job_id))

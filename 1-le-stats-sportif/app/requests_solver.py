@@ -106,36 +106,29 @@ class RequestsSolver:
 
         self.webserver.job_status[job_id] = status
 
-    def question_solver(self, endpoint, job_id: int, request_args: dict):
-        """
-        Helper function for the requests that require a question as input
-        Checks the validity of the input and delegates the computation to the endpoint function
-        """
-        if ("question" not in request_args.keys()) or (
-            request_args["question"] not in constants.QUESTIONS):
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-
-        question = request_args["question"]
-        result = endpoint(self.webserver.data, question)
-        self.write_result(result, job_id)
-
-    def question_and_state_solver(self, endpoint, job_id: int, request_args: dict):
+    def solver(self, endpoint, job_id, request_args, has_state = False):
         """
         Helper function for the requests that require a question and a state as input
         Checks the validity of the input and delegates the computation to the endpoint function
         """
+        result = {}
+
         if ("question" not in request_args.keys()) or (
             request_args["question"] not in constants.QUESTIONS):
             self.write_result({"error_message": "Invalid input"}, job_id, "error")
             return
-
-        if ("state" not in request_args.keys()) or (
-            request_args["state"] not in constants.STATES):
-            self.write_result({"error_message": "Invalid input"}, job_id, "error")
-            return
-
         question = request_args["question"]
-        state = request_args["state"]
-        result = endpoint(self.webserver.data, question, state)
+
+        if has_state is True:
+            if ("state" not in request_args.keys()) or (
+                request_args["state"] not in constants.STATES):
+                self.write_result({"error_message": "Invalid input"}, job_id, "error")
+                return
+
+            state = request_args["state"]
+
+            result = endpoint(self.webserver.data, question, state)
+        else:
+            result = endpoint(self.webserver.data, question)
+
         self.write_result(result, job_id)

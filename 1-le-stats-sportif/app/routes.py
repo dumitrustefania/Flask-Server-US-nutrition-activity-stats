@@ -6,7 +6,7 @@ import json
 from flask import request, jsonify
 from app import webserver, requests_solver
 
-def submit_request(solver, endpoint, req):
+def submit_request(endpoint, req, has_state = False):
     """
     Submit a post request to the thread pool
     """
@@ -21,7 +21,7 @@ def submit_request(solver, endpoint, req):
 
         # Register the job to the thread pool. Don't wait for task to finish
         webserver.job_status[job_id] = "running"
-        webserver.tasks_runner.submit(solver, endpoint, job_id, data)
+        webserver.tasks_runner.submit( endpoint, job_id, data, has_state)
 
         # Increment job_id counter
         webserver.job_counter += 1
@@ -73,7 +73,6 @@ def states_mean_request():
     """
     webserver.logger.info("Route /api/states_mean called")
     return submit_request(
-        webserver.requests_solver.question_solver,
         requests_solver.states_mean,
         request)
 
@@ -84,9 +83,9 @@ def state_mean_request():
     """
     webserver.logger.info("Route /api/state_mean called")
     return submit_request(
-        webserver.requests_solver.question_and_state_solver,
         requests_solver.state_mean,
-        request,)
+        request,
+        True)
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
@@ -95,7 +94,6 @@ def best5_request():
     """
     webserver.logger.info("Route /api/best5 called")
     return submit_request(
-        webserver.requests_solver.question_solver,
         requests_solver.best5,
         request)
 
@@ -106,7 +104,6 @@ def worst5_request():
     """
     webserver.logger.info("Route /api/worst5 called")
     return submit_request(
-        webserver.requests_solver.question_solver,
         requests_solver.worst5,
         request)
 
@@ -117,7 +114,6 @@ def global_mean_request():
     """
     webserver.logger.info("Route /api/global_mean called")
     return submit_request(
-        webserver.requests_solver.question_solver,
         requests_solver.global_mean,
         request)
 
@@ -129,7 +125,6 @@ def diff_from_mean_request():
     """
     webserver.logger.info("Route /api/diff_from_mean called")
     return submit_request(
-        webserver.requests_solver.question_solver,
         requests_solver.diff_from_mean,
         request)
 
@@ -141,9 +136,9 @@ def state_diff_from_mean_request():
     """
     webserver.logger.info("Route /api/state_diff_from_mean called")
     return submit_request(
-        webserver.requests_solver.question_and_state_solver,
         requests_solver.state_diff_from_mean,
-        request)
+        request,
+        True)
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
@@ -152,7 +147,6 @@ def mean_by_category_request():
     """
     webserver.logger.info("Route /api/mean_by_category called")
     return submit_request(
-        webserver.requests_solver.question_solver,
         requests_solver.mean_by_category,
         request)
 
@@ -164,9 +158,9 @@ def state_mean_by_category_request():
     """
     webserver.logger.info("Route /api/state_mean_by_category called")
     return submit_request(
-        webserver.requests_solver.question_and_state_solver,
         requests_solver.state_mean_by_category,
-        request)
+        request,
+        True)
 
 @webserver.route('/api/graceful_shutdown', methods=['GET'])
 def shutdown():
