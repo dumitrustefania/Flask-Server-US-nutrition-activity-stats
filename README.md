@@ -1,5 +1,5 @@
 
-# Flask Server - US sport stats
+# Flask Server - US nutritional & activity stats
  March 2024
 
 ## Overview
